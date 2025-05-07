@@ -1,7 +1,7 @@
-from dataclasses import dataclass, field, fields
-from typing import Optional, List, Any, Dict
-from enum import Enum
 import json
+from dataclasses import dataclass, field, fields
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 
 class ApprovalStatus(str, Enum):
@@ -141,6 +141,26 @@ class SymmetricEncryption(str, Enum):
     AES_GCM_128 = "aes-128-gcm"
 
 
+class AsymmetricEncryption(str, Enum):
+    RSA_4096 = "rsa-4096"
+    ECC_NIST_P256 = "ecc-nist-p256"
+
+
+class RSASigningAlgorithm(str, Enum):
+    RSASSA_PSS_SHA_256 = "rsassa-pss-sha-256"
+    RSASSA_PSS_SHA_384 = "rsassa-pss-sha-384"
+    RSASSA_PSS_SHA_512 = "rsassa-pss-sha-512"
+    RSASSA_PKCS1_V1_5_SHA_256 = "rsassa-pkcs1-v1-5-sha-256"
+    RSASSA_PKCS1_V1_5_SHA_384 = "rsassa-pkcs1-v1-5-sha-384"
+    RSASSA_PKCS1_V1_5_SHA_512 = "rsassa-pkcs1-v1-5-sha-512"
+
+
+class ECDSASigningAlgorithm(str, Enum):
+    ECDSA_SHA_256 = "ecdsa-sha-256"
+    ECDSA_SHA_384 = "ecdsa-sha-384"
+    ECDSA_SHA_512 = "ecdsa-sha-512"
+
+
 class OrderDirection(str, Enum):
     ASC = "asc"
     DESC = "desc"
@@ -207,3 +227,17 @@ class KmsKeyDecryptDataResponse(BaseModel):
     """Response model for decrypt data API"""
 
     plaintext: str
+
+
+@dataclass
+class KmsKeySignDataResponse(BaseModel):
+    signature: str
+    keyId: str
+    signingAlgorithm: Union[ECDSASigningAlgorithm | RSASigningAlgorithm]
+
+
+@dataclass
+class KmsKeyVerifyDataResponse(BaseModel):
+    signatureValid: bool
+    keyId: str
+    signingAlgorithm: Union[ECDSASigningAlgorithm | RSASigningAlgorithm]
