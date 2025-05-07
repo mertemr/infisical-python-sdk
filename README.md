@@ -1,19 +1,20 @@
 # Infisical Python SDK
 
-The Infisical SDK provides a convenient way to interact with the Infisical API. 
+The Infisical SDK provides a convenient way to interact with the Infisical API.
 
 ### Migrating to version 1.0.3 or above
 
 We have recently rolled out our first stable version of the SDK, version `1.0.3` and above.
 
 The 1.0.3 version comes with a few key changes that may change how you're using the SDK.
+
 1. **Removal of `rest`**: The SDK no longer exposes the entire Infisical API. This was nessecary as we have moved away from using an OpenAPI generator approach. We aim to add support for more API resources in the near future. If you have any specific requests, please [open an issue](https://github.com/Infisical/python-sdk-official/issues).
 
 2. **New response types**: The 1.0.3 release uses return types that differ from the older versions. The new return types such as `BaseSecret`, are all exported from the Infisical SDK.
 
 3. **Property renaming**: Some properties on the responses have been slightly renamed. An example of this would be that the `secret_key` property on the `get_secret_by_name()` method, that has been renamed to `secretKey`.
 
-With this in mind, you're ready to upgrade your SDK version to `1.0.3` or above. 
+With this in mind, you're ready to upgrade your SDK version to `1.0.3` or above.
 
 You can refer to our [legacy documentation](https://github.com/Infisical/python-sdk-official/tree/9b0403938ee5ae599d42c5f1fdf9158671a15606?tab=readme-ov-file#infisical-python-sdk) if need be.
 
@@ -37,7 +38,7 @@ client = InfisicalSDKClient(host="https://app.infisical.com")
 
 # Authenticate (example using Universal Auth)
 client.auth.universal_auth.login(
-    client_id="<machine-identity-client-id>", 
+    client_id="<machine-identity-client-id>",
     client_secret="<machine-identity-client-secret>"
 )
 
@@ -77,7 +78,7 @@ The `Auth` component provides methods for authentication:
 
 ```python
 response = client.auth.universal_auth.login(
-    client_id="<machine-identity-client-id>", 
+    client_id="<machine-identity-client-id>",
     client_secret="<machine-identity-client-secret>"
 )
 ```
@@ -100,7 +101,7 @@ secrets = client.secrets.list_secrets(
     environment_slug="dev",
     secret_path="/",
     expand_secret_references=True, # Optional
-    view_secret_value=True, # Optional 
+    view_secret_value=True, # Optional
     recursive=False, # Optional
     include_imports=True, # Optional
     tag_filters=[] # Optional
@@ -108,6 +109,7 @@ secrets = client.secrets.list_secrets(
 ```
 
 **Parameters:**
+
 - `project_id` (str): The ID of your project.
 - `environment_slug` (str): The environment in which to list secrets (e.g., "dev").
 - `secret_path` (str): The path to the secrets.
@@ -118,6 +120,7 @@ secrets = client.secrets.list_secrets(
 - `tag_filters` (List[str]): Tags to filter secrets.
 
 **Returns:**
+
 - `ListSecretsResponse`: The response containing the list of secrets.
 
 #### Create Secret
@@ -137,6 +140,7 @@ new_secret = client.secrets.create_secret_by_name(
 ```
 
 **Parameters:**
+
 - `secret_name` (str): The name of the secret.
 - `project_id` (str): The ID of your project.
 - `secret_path` (str): The path to the secret.
@@ -148,6 +152,7 @@ new_secret = client.secrets.create_secret_by_name(
 - `secret_reminder_note` (str, optional): A note for the secret reminder.
 
 **Returns:**
+
 - `BaseSecret`: The response after creating the secret.
 
 #### Update Secret
@@ -168,6 +173,7 @@ updated_secret = client.secrets.update_secret_by_name(
 ```
 
 **Parameters:**
+
 - `current_secret_name` (str): The current name of the secret.
 - `project_id` (str): The ID of your project.
 - `secret_path` (str): The path to the secret.
@@ -180,6 +186,7 @@ updated_secret = client.secrets.update_secret_by_name(
 - `new_secret_name` (str, optional): A new name for the secret.
 
 **Returns:**
+
 - `BaseSecret`: The response after updating the secret.
 
 #### Get Secret by Name
@@ -198,6 +205,7 @@ secret = client.secrets.get_secret_by_name(
 ```
 
 **Parameters:**
+
 - `secret_name` (str): The name of the secret.
 - `project_id` (str): The ID of your project.
 - `environment_slug` (str): The environment in which to retrieve the secret.
@@ -208,6 +216,7 @@ secret = client.secrets.get_secret_by_name(
 - `version` (str, optional): The version of the secret to retrieve. Fetches the latest by default.
 
 **Returns:**
+
 - `BaseSecret`: The response containing the secret.
 
 #### Delete Secret by Name
@@ -222,12 +231,14 @@ deleted_secret = client.secrets.delete_secret_by_name(
 ```
 
 **Parameters:**
+
 - `secret_name` (str): The name of the secret to delete.
 - `project_id` (str): The ID of your project.
 - `environment_slug` (str): The environment in which to delete the secret.
 - `secret_path` (str): The path to the secret.
 
 **Returns:**
+
 - `BaseSecret`: The response after deleting the secret.
 
 ### `kms`
@@ -248,6 +259,7 @@ kms_keys = client.kms.list_keys(
 ```
 
 **Parameters:**
+
 - `project_id` (str): The ID of your project.
 - `offset` (int, optional): The offset to paginate from.
 - `limit` (int, optional): The page size for paginating.
@@ -256,6 +268,7 @@ kms_keys = client.kms.list_keys(
 - `search` (str, optional): The text value to filter key names by.
 
 **Returns:**
+
 - `ListKmsKeysResponse`: The response containing the list of KMS keys.
 
 #### Get KMS Key by ID
@@ -267,9 +280,11 @@ kms_key = client.kms.get_key_by_id(
 ```
 
 **Parameters:**
+
 - `key_id` (str): The ID of the key to retrieve.
 
 **Returns:**
+
 - `KmsKey`: The specified key.
 
 #### Get KMS Key by Name
@@ -282,10 +297,12 @@ kms_key = client.kms.get_key_by_name(
 ```
 
 **Parameters:**
+
 - `key_name` (str): The name of the key to retrieve.
 - `project_id` (str): The ID of your project.
 
 **Returns:**
+
 - `KmsKey`: The specified key.
 
 #### Create KMS Key
@@ -300,12 +317,14 @@ kms_key = client.kms.create_key(
 ```
 
 **Parameters:**
+
 - `name` (str): The name of the key (must be slug-friendly).
 - `project_id` (str): The ID of your project.
 - `encryption_algorithm` (SymmetricEncryption): The encryption alogrithm this key should use.
 - `description` (str, optional): A description of your key.
 
 **Returns:**
+
 - `KmsKey`: The newly created key.
 
 #### Update KMS Key
@@ -320,12 +339,14 @@ updated_key = client.kms.update_key(
 ```
 
 **Parameters:**
+
 - `key_id` (str): The ID of the key to be updated.
 - `name` (str, optional): The updated name of the key (must be slug-friendly).
 - `description` (str): The updated description of the key.
 - `is_disabled` (str): The flag to disable operations with this key.
 
 **Returns:**
+
 - `KmsKey`: The updated key.
 
 #### Delete KMS Key
@@ -337,9 +358,11 @@ deleted_key = client.kms.delete_key(
 ```
 
 **Parameters:**
+
 - `key_id` (str): The ID of the key to be deleted.
 
 **Returns:**
+
 - `KmsKey`: The deleted key.
 
 #### Encrypt Data with KMS Key
@@ -352,10 +375,12 @@ encrypted_data = client.kms.encrypt_data(
 ```
 
 **Parameters:**
+
 - `key_id` (str): The ID of the key to encrypt the data with.
 - `base64EncodedPlaintext` (str): The plaintext data to encrypt (must be base64 encoded).
 
 **Returns:**
+
 - `str`: The encrypted ciphertext.
 
 #### Decrypte Data with KMS Key
@@ -368,8 +393,10 @@ decrypted_data = client.kms.decrypt_data(
 ```
 
 **Parameters:**
+
 - `key_id` (str): The ID of the key to decrypt the data with.
 - `ciphertext` (str): The ciphertext returned from the encrypt operation.
 
 **Returns:**
+
 - `str`: The base64 encoded plaintext.

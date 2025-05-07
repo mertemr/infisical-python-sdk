@@ -10,9 +10,9 @@ stages:
 .pytest:
   stage: test
   script:
-   - pip install -r requirements.txt
-   - pip install -r test-requirements.txt
-   - pytest --cov=infisicalapi_client
+    - pip install -r requirements.txt
+    - pip install -r test-requirements.txt
+    - pytest --cov=infisicalapi_client
 
 pytest-3.7:
   extends: .pytest

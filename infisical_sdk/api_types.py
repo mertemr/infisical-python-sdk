@@ -6,6 +6,7 @@ import json
 
 class ApprovalStatus(str, Enum):
     """Enum for approval status"""
+
     OPEN = "open"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -13,6 +14,7 @@ class ApprovalStatus(str, Enum):
 
 class BaseModel:
     """Base class for all models"""
+
     def to_dict(self) -> Dict:
         """Convert model to dictionary"""
         result = {}
@@ -32,7 +34,7 @@ class BaseModel:
         return result
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'BaseModel':
+    def from_dict(cls, data: Dict) -> "BaseModel":
         """Create model from dictionary"""
         # Get only the fields that exist in the dataclass
         valid_fields = {f.name for f in fields(cls)}
@@ -44,7 +46,7 @@ class BaseModel:
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> 'BaseModel':
+    def from_json(cls, json_str: str) -> "BaseModel":
         """Create model from JSON string"""
         data = json.loads(json_str)
         return cls.from_dict(data)
@@ -53,6 +55,7 @@ class BaseModel:
 @dataclass(frozen=True)
 class SecretTag(BaseModel):
     """Model for secret tags"""
+
     id: str
     slug: str
     name: str
@@ -62,6 +65,7 @@ class SecretTag(BaseModel):
 @dataclass
 class BaseSecret(BaseModel):
     """Infisical Secret"""
+
     id: str
     _id: str
     workspace: str
@@ -86,6 +90,7 @@ class BaseSecret(BaseModel):
 @dataclass
 class Import(BaseModel):
     """Model for imports section"""
+
     secretPath: str
     environment: str
     folderId: Optional[str] = None
@@ -95,33 +100,36 @@ class Import(BaseModel):
 @dataclass
 class ListSecretsResponse(BaseModel):
     """Complete response model for secrets API"""
+
     secrets: List[BaseSecret]
     imports: List[Import] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'ListSecretsResponse':
+    def from_dict(cls, data: Dict) -> "ListSecretsResponse":
         """Create model from dictionary with camelCase keys, handling nested objects"""
         return cls(
-            secrets=[BaseSecret.from_dict(secret) for secret in data['secrets']],
-            imports=[Import.from_dict(imp) for imp in data.get('imports', [])]
+            secrets=[BaseSecret.from_dict(secret) for secret in data["secrets"]],
+            imports=[Import.from_dict(imp) for imp in data.get("imports", [])],
         )
 
 
 @dataclass
 class SingleSecretResponse(BaseModel):
     """Response model for get secret API"""
+
     secret: BaseSecret
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'SingleSecretResponse':
+    def from_dict(cls, data: Dict) -> "SingleSecretResponse":
         return cls(
-            secret=BaseSecret.from_dict(data['secret']),
+            secret=BaseSecret.from_dict(data["secret"]),
         )
 
 
 @dataclass
 class MachineIdentityLoginResponse(BaseModel):
     """Response model for machine identity login API"""
+
     accessToken: str
     expiresIn: int
     accessTokenMaxTTL: int
@@ -145,6 +153,7 @@ class KmsKeysOrderBy(str, Enum):
 @dataclass
 class KmsKey(BaseModel):
     """Infisical KMS Key"""
+
     id: str
     description: str
     isDisabled: bool
@@ -160,37 +169,41 @@ class KmsKey(BaseModel):
 @dataclass
 class ListKmsKeysResponse(BaseModel):
     """Complete response model for Kms Keys API"""
+
     keys: List[KmsKey]
     totalCount: int
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'ListKmsKeysResponse':
+    def from_dict(cls, data: Dict) -> "ListKmsKeysResponse":
         """Create model from dictionary with camelCase keys, handling nested objects"""
         return cls(
-            keys=[KmsKey.from_dict(key) for key in data['keys']],
-            totalCount=data['totalCount']
+            keys=[KmsKey.from_dict(key) for key in data["keys"]],
+            totalCount=data["totalCount"],
         )
 
 
 @dataclass
 class SingleKmsKeyResponse(BaseModel):
     """Response model for get/create/update/delete API"""
+
     key: KmsKey
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'SingleKmsKeyResponse':
+    def from_dict(cls, data: Dict) -> "SingleKmsKeyResponse":
         return cls(
-            key=KmsKey.from_dict(data['key']),
+            key=KmsKey.from_dict(data["key"]),
         )
 
 
 @dataclass
 class KmsKeyEncryptDataResponse(BaseModel):
     """Response model for encrypt data API"""
+
     ciphertext: str
 
 
 @dataclass
 class KmsKeyDecryptDataResponse(BaseModel):
     """Response model for decrypt data API"""
+
     plaintext: str
