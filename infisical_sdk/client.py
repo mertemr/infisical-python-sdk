@@ -6,6 +6,7 @@ from infisical_sdk.resources import KMS
 
 from infisical_sdk.util import SecretsCache
 
+
 class InfisicalSDKClient:
     def __init__(self, host: str, token: str = None, cache_ttl: int = 60):
         """
@@ -15,7 +16,7 @@ class InfisicalSDKClient:
         :param str token: The authentication token for the client. If not specified, you can use the `auth` methods to authenticate.
         :param int cache_ttl: The time to live for the secrets cache. This is the number of seconds that secrets fetched from the API will be cached for. Set to `None` to disable caching. Defaults to `60` seconds.
         """
-        
+
         self.host = host
         self.access_token = token
 
@@ -37,4 +38,3 @@ class InfisicalSDKClient:
         Set the access token for future requests.
         """
         return self.access_token
-

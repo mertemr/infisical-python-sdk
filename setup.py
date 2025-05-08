@@ -1,9 +1,9 @@
 # coding: utf-8
 
 """
-    Infisical SDK
+Infisical SDK
 
-    List of all available APIs that can be consumed
+List of all available APIs that can be consumed
 """  # noqa: E501
 
 from setuptools import setup, find_packages  # noqa: H301
@@ -36,7 +36,7 @@ setup(
     install_requires=REQUIRES,
     packages=find_packages(exclude=["test", "tests"]),
     include_package_data=True,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     long_description="""\
     Infisical SDK client for Python. To view documentation, please visit https://github.com/Infisical/python-sdk-official
     """,  # noqa: E501

@@ -3,6 +3,8 @@ from infisical_sdk.resources.auth_methods import AWSAuth
 from infisical_sdk.resources.auth_methods import UniversalAuth
 
 from typing import Callable
+
+
 class Auth:
     def __init__(self, requests: InfisicalRequests, setToken: Callable[[str], None]):
         self.requests = requests

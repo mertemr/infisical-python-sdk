@@ -22,21 +22,25 @@ NETWORK_ERRORS = [
     ConnectionAbortedError,
 ]
 
+
 def join_url(base: str, path: str) -> str:
     """
     Join base URL and path properly, handling slashes appropriately.
     """
-    if not base.endswith('/'):
-        base += '/'
-    return base + path.lstrip('/')
+    if not base.endswith("/"):
+        base += "/"
+    return base + path.lstrip("/")
+
 
 class InfisicalError(Exception):
     """Base exception for Infisical client errors"""
+
     pass
 
 
 class APIError(InfisicalError):
     """API-specific errors"""
+
     def __init__(self, message: str, status_code: int, response: Dict[str, Any]):
         self.status_code = status_code
         self.response = response
@@ -46,6 +50,7 @@ class APIError(InfisicalError):
 @dataclass
 class APIResponse(Generic[T]):
     """Generic API response wrapper"""
+
     data: T
     status_code: int
     headers: Dict[str, str]
@@ -53,36 +58,35 @@ class APIResponse(Generic[T]):
     def to_dict(self) -> Dict:
         """Convert to dictionary with camelCase keys"""
         return {
-            'data': self.data.to_dict() if hasattr(self.data, 'to_dict') else self.data,
-            'statusCode': self.status_code,
-            'headers': self.headers
+            "data": self.data.to_dict() if hasattr(self.data, "to_dict") else self.data,
+            "statusCode": self.status_code,
+            "headers": self.headers,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict) -> 'APIResponse[T]':
+    def from_dict(cls, data: Dict) -> "APIResponse[T]":
         """Create from dictionary with camelCase keys"""
         return cls(
-            data=data['data'],
-            status_code=data['statusCode'],
-            headers=data['headers']
+            data=data["data"], status_code=data["statusCode"], headers=data["headers"]
         )
 
+
 def with_retry(
-    max_retries: int = 3, 
-    base_delay: float = 1.0, 
-    network_errors: Optional[List[Type[Exception]]] = None
+    max_retries: int = 3,
+    base_delay: float = 1.0,
+    network_errors: Optional[List[Type[Exception]]] = None,
 ) -> Callable:
     """
     Decorator to add retry logic with exponential backoff to requests methods.
     """
     if network_errors is None:
         network_errors = NETWORK_ERRORS
-        
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             retry_count = 0
-            
+
             while True:
                 try:
                     return func(*args, **kwargs)
@@ -90,17 +94,17 @@ def with_retry(
                     retry_count += 1
                     if retry_count > max_retries:
                         raise
-                    
+
                     base_delay_with_backoff = base_delay * (2 ** (retry_count - 1))
-                    
+
                     # +/-20% jitter
                     jitter = random.uniform(-0.2, 0.2) * base_delay_with_backoff
                     delay = base_delay_with_backoff + jitter
-                    
+
                     time.sleep(delay)
-        
+
         return wrapper
-    
+
     return decorator
 
 
@@ -140,7 +144,7 @@ class InfisicalRequests:
             raise APIError(
                 message=error_data.get("message", "Unknown error"),
                 status_code=response.status_code,
-                response=error_data
+                response=error_data,
             )
         except requests.exceptions.RequestException as e:
             raise InfisicalError(f"Request failed: {str(e)}")
@@ -149,12 +153,8 @@ class InfisicalRequests:
 
     @with_retry(max_retries=4, base_delay=1.0)
     def get(
-            self,
-            path: str,
-            model: Type[T],
-            params: Optional[Dict[str, Any]] = None
-          ) -> APIResponse[T]:
-
+        self, path: str, model: Type[T], params: Optional[Dict[str, Any]] = None
+    ) -> APIResponse[T]:
         """
         Make a GET request and parse response into given model
 
@@ -166,22 +166,18 @@ class InfisicalRequests:
         response = self.session.get(self._build_url(path), params=params)
         data = self._handle_response(response)
 
-        parsed_data = model.from_dict(data) if hasattr(model, 'from_dict') else data
+        parsed_data = model.from_dict(data) if hasattr(model, "from_dict") else data
 
         return APIResponse(
             data=parsed_data,
             status_code=response.status_code,
-            headers=dict(response.headers)
+            headers=dict(response.headers),
         )
 
     @with_retry(max_retries=4, base_delay=1.0)
     def post(
-            self,
-            path: str,
-            model: Type[T],
-            json: Optional[Dict[str, Any]] = None
-          ) -> APIResponse[T]:
-
+        self, path: str, model: Type[T], json: Optional[Dict[str, Any]] = None
+    ) -> APIResponse[T]:
         """Make a POST request with JSON data"""
 
         if json is not None:
@@ -191,22 +187,18 @@ class InfisicalRequests:
         response = self.session.post(self._build_url(path), json=json)
         data = self._handle_response(response)
 
-        parsed_data = model.from_dict(data) if hasattr(model, 'from_dict') else data
+        parsed_data = model.from_dict(data) if hasattr(model, "from_dict") else data
 
         return APIResponse(
             data=parsed_data,
             status_code=response.status_code,
-            headers=dict(response.headers)
+            headers=dict(response.headers),
         )
 
     @with_retry(max_retries=4, base_delay=1.0)
     def patch(
-            self,
-            path: str,
-            model: Type[T],
-            json: Optional[Dict[str, Any]] = None
-          ) -> APIResponse[T]:
-
+        self, path: str, model: Type[T], json: Optional[Dict[str, Any]] = None
+    ) -> APIResponse[T]:
         """Make a PATCH request with JSON data"""
 
         if json is not None:
@@ -216,22 +208,18 @@ class InfisicalRequests:
         response = self.session.patch(self._build_url(path), json=json)
         data = self._handle_response(response)
 
-        parsed_data = model.from_dict(data) if hasattr(model, 'from_dict') else data
+        parsed_data = model.from_dict(data) if hasattr(model, "from_dict") else data
 
         return APIResponse(
             data=parsed_data,
             status_code=response.status_code,
-            headers=dict(response.headers)
+            headers=dict(response.headers),
         )
 
     @with_retry(max_retries=4, base_delay=1.0)
     def delete(
-            self,
-            path: str,
-            model: Type[T],
-            json: Optional[Dict[str, Any]] = None
-          ) -> APIResponse[T]:
-
+        self, path: str, model: Type[T], json: Optional[Dict[str, Any]] = None
+    ) -> APIResponse[T]:
         """Make a PATCH request with JSON data"""
 
         if json is not None:
@@ -241,10 +229,10 @@ class InfisicalRequests:
         response = self.session.delete(self._build_url(path), json=json)
         data = self._handle_response(response)
 
-        parsed_data = model.from_dict(data) if hasattr(model, 'from_dict') else data
+        parsed_data = model.from_dict(data) if hasattr(model, "from_dict") else data
 
         return APIResponse(
             data=parsed_data,
             status_code=response.status_code,
-            headers=dict(response.headers)
+            headers=dict(response.headers),
         )

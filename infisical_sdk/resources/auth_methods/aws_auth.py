@@ -18,7 +18,9 @@ from typing import Dict, Any
 
 
 class AWSAuth:
-    def __init__(self, requests: InfisicalRequests, setToken: Callable[[str], None]) -> None:
+    def __init__(
+        self, requests: InfisicalRequests, setToken: Callable[[str], None]
+    ) -> None:
         self.requests = requests
         self.setToken = setToken
 
@@ -36,8 +38,8 @@ class AWSAuth:
         identity_id = identity_id or os.getenv("INFISICAL_AWS_IAM_AUTH_IDENTITY_ID")
         if not identity_id:
             raise ValueError(
-              "Identity ID must be provided or set in the environment variable" +
-              "INFISICAL_AWS_IAM_AUTH_IDENTITY_ID."
+                "Identity ID must be provided or set in the environment variable"
+                + "INFISICAL_AWS_IAM_AUTH_IDENTITY_ID."
             )
 
         aws_region = self.get_aws_region()
@@ -49,23 +51,22 @@ class AWSAuth:
         iam_request_body = "Action=GetCallerIdentity&Version=2011-06-15"
 
         request_headers = self._prepare_aws_request(
-          iam_request_url,
-          iam_request_body,
-          credentials,
-          aws_region
+            iam_request_url, iam_request_body, credentials, aws_region
         )
 
         requestBody = {
-          "identityId": identity_id,
-          "iamRequestBody": base64.b64encode(iam_request_body.encode()).decode(),
-          "iamRequestHeaders": base64.b64encode(json.dumps(request_headers).encode()).decode(),
-          "iamHttpRequestMethod": "POST"
+            "identityId": identity_id,
+            "iamRequestBody": base64.b64encode(iam_request_body.encode()).decode(),
+            "iamRequestHeaders": base64.b64encode(
+                json.dumps(request_headers).encode()
+            ).decode(),
+            "iamHttpRequestMethod": "POST",
         }
 
         result = self.requests.post(
-          path="/api/v1/auth/aws-auth/login",
-          json=requestBody,
-          model=MachineIdentityLoginResponse
+            path="/api/v1/auth/aws-auth/login",
+            json=requestBody,
+            model=MachineIdentityLoginResponse,
         )
 
         self.setToken(result.data.accessToken)
@@ -82,29 +83,31 @@ class AWSAuth:
             raise RuntimeError(f"AWS IAM Auth Login failed: {str(e)}")
 
     def _prepare_aws_request(
-      self,
-      url: str,
-      body: str,
-      credentials: Any,
-      region: str) -> Dict[str, str]:
-
+        self, url: str, body: str, credentials: Any, region: str
+    ) -> Dict[str, str]:
         current_time = datetime.datetime.now(datetime.timezone.utc)
-        amz_date = current_time.strftime('%Y%m%dT%H%M%SZ')
+        amz_date = current_time.strftime("%Y%m%dT%H%M%SZ")
 
         request = AWSRequest(method="POST", url=url, data=body)
         request.headers["X-Amz-Date"] = amz_date
         request.headers["Host"] = f"sts.{region}.amazonaws.com"
-        request.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=utf-8"
+        request.headers["Content-Type"] = (
+            "application/x-www-form-urlencoded; charset=utf-8"
+        )
         request.headers["Content-Length"] = str(len(body))
 
         signer = SigV4Auth(credentials, "sts", region)
         signer.add_auth(request)
 
-        return {k: v for k, v in request.headers.items() if k.lower() != "content-length"}
+        return {
+            k: v for k, v in request.headers.items() if k.lower() != "content-length"
+        }
 
     @staticmethod
     def get_aws_region() -> str:
-        region = os.getenv("AWS_REGION")  # Typically found in lambda runtime environment
+        region = os.getenv(
+            "AWS_REGION"
+        )  # Typically found in lambda runtime environment
         if region:
             return region
 
@@ -119,15 +122,18 @@ class AWSAuth:
         token_response = session.put(
             "http://169.254.169.254/latest/api/token",
             headers={"X-aws-ec2-metadata-token-ttl-seconds": "21600"},
-            timeout=timeout / 1000
+            timeout=timeout / 1000,
         )
         token_response.raise_for_status()
         metadata_token = token_response.text
 
         identity_response = session.get(
             "http://169.254.169.254/latest/dynamic/instance-identity/document",
-            headers={"X-aws-ec2-metadata-token": metadata_token, "Accept": "application/json"},
-            timeout=timeout / 1000
+            headers={
+                "X-aws-ec2-metadata-token": metadata_token,
+                "Accept": "application/json",
+            },
+            timeout=timeout / 1000,
         )
 
         identity_response.raise_for_status()
