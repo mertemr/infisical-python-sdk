@@ -139,18 +139,18 @@ class AsymmetricEncryption(str, Enum):
 
 
 class RSASigningAlgorithm(str, Enum):
-    RSASSA_PSS_SHA_256 = "rsassa-pss-sha-256"
-    RSASSA_PSS_SHA_384 = "rsassa-pss-sha-384"
-    RSASSA_PSS_SHA_512 = "rsassa-pss-sha-512"
-    RSASSA_PKCS1_V1_5_SHA_256 = "rsassa-pkcs1-v1-5-sha-256"
-    RSASSA_PKCS1_V1_5_SHA_384 = "rsassa-pkcs1-v1-5-sha-384"
-    RSASSA_PKCS1_V1_5_SHA_512 = "rsassa-pkcs1-v1-5-sha-512"
+    RSASSA_PSS_SHA_256 = "RSASSA_PSS_SHA_256"
+    RSASSA_PSS_SHA_384 = "RSASSA_PSS_SHA_384"
+    RSASSA_PSS_SHA_512 = "RSASSA_PSS_SHA_512"
+    RSASSA_PKCS1_V1_5_SHA_256 = "RSASSA_PKCS1_V1_5_SHA_256"
+    RSASSA_PKCS1_V1_5_SHA_384 = "RSASSA_PKCS1_V1_5_SHA_384"
+    RSASSA_PKCS1_V1_5_SHA_512 = "RSASSA_PKCS1_V1_5_SHA_512"
 
 
 class ECDSASigningAlgorithm(str, Enum):
-    ECDSA_SHA_256 = "ecdsa-sha-256"
-    ECDSA_SHA_384 = "ecdsa-sha-384"
-    ECDSA_SHA_512 = "ecdsa-sha-512"
+    ECDSA_SHA_256 = "ECDSA_SHA_256"
+    ECDSA_SHA_384 = "ECDSA_SHA_384"
+    ECDSA_SHA_512 = "ECDSA_SHA_512"
 
 
 class OrderDirection(str, Enum):
