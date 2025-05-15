@@ -1,24 +1,44 @@
-[tool.poetry]
-name = "infisicalapi_client"
-version = "1.0.0"
+[project]
+name = "infisicalsdk"
+version = "1.1.0"
 description = "Infisical API"
-authors = ["OpenAPI Generator Community <team@openapitools.org>"]
-license = "NoLicense"
+authors = [{ name = "OpenAPI Generator Community", email = "team@openapitools.org" }]
+requires-python = "~=3.7"
 readme = "README.md"
-repository = "https://github.com/GIT_USER_ID/GIT_REPO_ID"
-keywords = ["OpenAPI", "OpenAPI-Generator", "Infisical API"]
+license.text = "NoLicense"
+keywords = [
+    "OpenAPI",
+    "OpenAPI-Generator",
+    "Infisical API",
+]
+dependencies = [
+    "python-dateutil>=2.8.2",
+    "aenum>=3.1.11",
+    "pydantic>=2.5.3",
+    "setuptools>=68.0.0",
+    "requests>=2.31.0",
+    "boto3>=1.33.13",
+    "botocore>=1.33.13",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/mertemr/infisical-python-sdk"
+"Bug Tracker" = "https://github.com/mertemr/infisical-python-sdk/issues"
+
+[dependency-groups]
+dev = [
+    "pytest>=7.2.1",
+    "tox>=3.9.0",
+    "flake8>=4.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-randomly>=3.12.0",
+]
+
+[tool.hatch.build.targets.sdist]
 include = ["infisicalapi_client/py.typed"]
 
-[tool.poetry.dependencies]
-python = "^3.7"
-
-python-dateutil = ">=2.8.2"
-aenum = ">=3.1.11"
-
-[tool.poetry.dev-dependencies]
-pytest = ">=7.2.1"
-tox = ">=3.9.0"
-flake8 = ">=4.0.0"
+[tool.hatch.build.targets.wheel]
+include = ["infisicalapi_client/py.typed"]
 
 [build-system]
 requires = ["setuptools"]
