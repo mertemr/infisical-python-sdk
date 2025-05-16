@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 
 from infisical_sdk.api_types import (
     ECDSASigningAlgorithm,
@@ -17,108 +17,65 @@ from infisical_sdk.api_types import (
 from infisical_sdk.infisical_requests import InfisicalRequests
 
 
-class KMS:
-    def __init__(self, requests: InfisicalRequests) -> None:
-        self.requests = requests
+class ActiveKMSKey:
+    def __init__(self, key_data: KmsKey, requests: InfisicalRequests):
+        self._key_data: KmsKey = key_data
+        self._key_type: KmsKey = key_data
+        self._requests: InfisicalRequests = requests
+        self.key_id: str = self._key_data.id
 
-    def list_keys(
-        self,
-        project_id: str,
-        offset: int = 0,
-        limit: int = 100,
-        order_by: KmsKeysOrderBy = KmsKeysOrderBy.NAME,
-        order_direction: OrderDirection = OrderDirection.ASC,
-        search: str = None,
-    ) -> ListKmsKeysResponse:
-        params = {
-            "projectId": project_id,
-            "search": search,
-            "offset": offset,
-            "limit": limit,
-            "orderBy": order_by,
-            "orderDirection": order_direction,
-        }
+    @property
+    def id(self) -> str:
+        return self._key_data.id
 
-        result = self.requests.get(
-            path="/api/v1/kms/keys", params=params, model=ListKmsKeysResponse
-        )
+    @property
+    def description(self) -> str:
+        return self._key_data.description
 
-        return result.data
+    @property
+    def is_disabled(self) -> bool:
+        return self._key_data.isDisabled
 
-    def get_key_by_id(self, key_id: str) -> KmsKey:
-        result = self.requests.get(
-            path=f"/api/v1/kms/keys/{key_id}", model=SingleKmsKeyResponse
-        )
+    @property
+    def org_id(self) -> str:
+        return self._key_data.orgId
 
-        return result.data.key
+    @property
+    def name(self) -> str:
+        return self._key_data.name
 
-    def get_key_by_name(self, key_name: str, project_id: str) -> KmsKey:
-        params = {
-            "projectId": project_id,
-        }
+    @property
+    def created_at(self) -> str:
+        return self._key_data.createdAt
 
-        result = self.requests.get(
-            path=f"/api/v1/kms/keys/key-name/{key_name}",
-            params=params,
-            model=SingleKmsKeyResponse,
-        )
+    @property
+    def updated_at(self) -> str:
+        return self._key_data.updatedAt
 
-        return result.data.key
+    @property
+    def project_id(self) -> str:
+        return self._key_data.projectId
 
-    def create_key(
-        self,
-        name: str,
-        project_id: str,
-        encryption_algorithm: SymmetricEncryption,
-        description: str = None,
-    ) -> KmsKey:
-        request_body = {
-            "name": name,
-            "projectId": project_id,
-            "encryptionAlgorithm": encryption_algorithm,
-            "description": description,
-        }
+    @property
+    def version(self) -> int:
+        return self._key_data.version
 
-        result = self.requests.post(
-            path="/api/v1/kms/keys", json=request_body, model=SingleKmsKeyResponse
-        )
+    @property
+    def encryption_algorithm(self) -> SymmetricEncryption:
+        return self._key_data.encryptionAlgorithm
 
-        return result.data.key
+    @property
+    def raw_data(self) -> KmsKey:
+        return self._key_data
+    
+    @property
+    def full_id(self) -> str:
+        return "%s.%s.%s" % (self.org_id, self.projectId, self.key_id)
 
-    def update_key(
-        self,
-        key_id: str,
-        name: str = None,
-        is_disabled: bool = None,
-        description: str = None,
-    ) -> KmsKey:
-        request_body = {
-            "name": name,
-            "isDisabled": is_disabled,
-            "description": description,
-        }
-
-        result = self.requests.patch(
-            path=f"/api/v1/kms/keys/{key_id}",
-            json=request_body,
-            model=SingleKmsKeyResponse,
-        )
-
-        return result.data.key
-
-    def delete_key(self, key_id: str) -> KmsKey:
-        result = self.requests.delete(
-            path=f"/api/v1/kms/keys/{key_id}", json={}, model=SingleKmsKeyResponse
-        )
-
-        return result.data.key
-
-    def encrypt_data(self, key_id: str, base64EncodedPlaintext: str) -> str:
+    def encrypt_data(self, base64EncodedPlaintext: str) -> str:
         """
         Encrypt data with the specified KMS key.
 
-        :param key_id: The ID of the key to decrypt the ciphertext with
-        :type key_id: str
         :param base64EncodedPlaintext: The base64 encoded plaintext to encrypt
         :type plaintext: str
 
@@ -128,21 +85,17 @@ class KMS:
         """
 
         request_body = {"plaintext": base64EncodedPlaintext}
-
-        result = self.requests.post(
-            path=f"/api/v1/kms/keys/{key_id}/encrypt",
+        response = self._requests.post(
+            path=f"/api/v1/kms/keys/{self.key_id}/encrypt",
             json=request_body,
             model=KmsKeyEncryptDataResponse,
         )
+        return response.data.ciphertext
 
-        return result.data.ciphertext
-
-    def decrypt_data(self, key_id: str, ciphertext: str) -> str:
+    def decrypt_data(self, ciphertext: str) -> str:
         """
         Decrypt data with the specified KMS key.
 
-        :param key_id: The ID of the key to decrypt the ciphertext with
-        :type key_id: str
         :param ciphertext: The encrypted base64 plaintext to decrypt
         :type ciphertext: str
 
@@ -152,26 +105,21 @@ class KMS:
         """
 
         request_body = {"ciphertext": ciphertext}
-
-        result = self.requests.post(
-            path=f"/api/v1/kms/keys/{key_id}/decrypt",
+        response = self._requests.post(
+            path=f"/api/v1/kms/keys/{self.key_id}/decrypt",
             json=request_body,
             model=KmsKeyDecryptDataResponse,
         )
-
-        return result.data.plaintext
+        return response.data.plaintext
 
     def sign_data(
         self,
-        key_id: str,
         base64EncodedPlaintext: str,
-        signingAlgorithm: Union[ECDSASigningAlgorithm | RSASigningAlgorithm],
+        signingAlgorithm: Union[ECDSASigningAlgorithm, RSASigningAlgorithm],
     ) -> str:
         """
         Sign the provided base64-encoded plaintext using the specified KMS key and signing algorithm.
 
-        :param key_id: The ID of the key used for signing.
-        :type key_id: str
         :param base64EncodedPlaintext: The base64-encoded plaintext to sign.
         :type base64EncodedPlaintext: str
         :param signingAlgorithm: The signing algorithm to use (RSA or ECDSA variants).
@@ -184,27 +132,22 @@ class KMS:
             "data": base64EncodedPlaintext,
             "signingAlgorithm": signingAlgorithm.value,
         }
-
-        result = self.requests.post(
-            path=f"/api/v1/kms/keys/{key_id}/sign",
+        response = self._requests.post(
+            path=f"/api/v1/kms/keys/{self.key_id}/sign",
             json=request_body,
             model=KmsKeySignDataResponse,
         )
-
-        return result.data.signature
+        return response.data.signature
 
     def verify_data(
         self,
-        key_id: str,
         base64EncodedPlaintext: str,
-        signingAlgorithm: Union[ECDSASigningAlgorithm | RSASigningAlgorithm],
+        signingAlgorithm: Union[ECDSASigningAlgorithm, RSASigningAlgorithm],
         signature: str,
     ) -> bool:
         """
         Verify a signature for the given base64-encoded plaintext using the specified KMS key and signing algorithm.
 
-        :param key_id: The ID of the key used to verify the signature.
-        :type key_id: str
         :param base64EncodedPlaintext: The base64-encoded plaintext whose signature is being verified.
         :type base64EncodedPlaintext: str
         :param signingAlgorithm: The algorithm used to generate the signature.
@@ -220,11 +163,111 @@ class KMS:
             "signingAlgorithm": signingAlgorithm.value,
             "signature": signature,
         }
-
-        result = self.requests.post(
-            path=f"/api/v1/kms/keys/{key_id}/verify",
+        response = self._requests.post(
+            path=f"/api/v1/kms/keys/{self.key_id}/verify",
             json=request_body,
             model=KmsKeyVerifyDataResponse,
         )
+        return response.data.signatureValid
 
-        return result.data.signatureValid
+    def update(
+        self,
+        name: Optional[str] = None,
+        is_disabled: Optional[bool] = None,
+        description: Optional[
+            str
+        ] = None,
+    ) -> "ActiveKMSKey":
+        request_body = {}
+        if name is not None:
+            request_body["name"] = name
+        if is_disabled is not None:
+            request_body["isDisabled"] = is_disabled
+        if description is not None:
+            request_body["description"] = description
+
+        if not request_body:
+            return self
+
+        response = self._requests.patch(
+            path=f"/api/v1/kms/keys/{self.key_id}",
+            json=request_body,
+            model=SingleKmsKeyResponse,
+        )
+        self._key_data = response.data.key
+        return self
+
+    def delete(self) -> KmsKey:
+        response = self._requests.delete(
+            path=f"/api/v1/kms/keys/{self.key_id}",
+            json={},
+            model=SingleKmsKeyResponse,
+        )
+        return response.data.key
+
+    def __repr__(self) -> str:
+        return f"<ActiveKMSKey id='{self.id}' name='{self.name}'>"
+
+
+class KMS:
+    def __init__(self, requests: InfisicalRequests) -> None:
+        self.requests = requests
+
+    def list_keys(
+        self,
+        project_id: str,
+        offset: int = 0,
+        limit: int = 100,
+        order_by: KmsKeysOrderBy = KmsKeysOrderBy.NAME,
+        order_direction: OrderDirection = OrderDirection.ASC,
+        search: Optional[str] = None,
+    ) -> ListKmsKeysResponse:
+        params = {
+            "projectId": project_id,
+            "offset": offset,
+            "limit": limit,
+            "orderBy": order_by,
+            "orderDirection": order_direction,
+        }
+        if search is not None:
+            params["search"] = search
+
+        response = self.requests.get(
+            path="/api/v1/kms/keys", params=params, model=ListKmsKeysResponse
+        )
+        return response.data
+
+    def get_key_by_id(self, key_id: str) -> ActiveKMSKey:
+        response = self.requests.get(
+            path=f"/api/v1/kms/keys/{key_id}", model=SingleKmsKeyResponse
+        )
+        return ActiveKMSKey(key_data=response.data.key, requests=self.requests)
+
+    def get_key_by_name(self, key_name: str, project_id: str) -> ActiveKMSKey:
+        params = {"projectId": project_id}
+        response = self.requests.get(
+            path=f"/api/v1/kms/keys/key-name/{key_name}",
+            params=params,
+            model=SingleKmsKeyResponse,
+        )
+        return ActiveKMSKey(key_data=response.data.key, requests=self.requests)
+
+    def create_key(
+        self,
+        name: str,
+        project_id: str,
+        encryption_algorithm: SymmetricEncryption,
+        description: Optional[str] = None,
+    ) -> ActiveKMSKey:
+        request_body = {
+            "name": name,
+            "projectId": project_id,
+            "encryptionAlgorithm": encryption_algorithm.value,
+        }
+        if description is not None:
+            request_body["description"] = description
+
+        response = self.requests.post(
+            path="/api/v1/kms/keys", json=request_body, model=SingleKmsKeyResponse
+        )
+        return ActiveKMSKey(key_data=response.data.key, requests=self.requests)
