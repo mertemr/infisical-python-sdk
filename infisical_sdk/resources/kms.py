@@ -70,7 +70,7 @@ class ActiveKMSKey:
     
     @property
     def full_id(self) -> str:
-        return "%s.%s.%s" % (self.org_id, self.projectId, self.key_id)
+        return "%s.%s.%s" % (self.org_id, self.project_id, self.key_id)
 
     def encrypt_data(self, base64EncodedPlaintext: str) -> str:
         """
