@@ -40,5 +40,5 @@ setup(
     long_description="""\
     Infisical SDK client for Python. To view documentation, please visit https://github.com/Infisical/python-sdk-official
     """,  # noqa: E501
-    package_data={"infisicalapi_client": ["py.typed"]},
+    package_data={"infisicalsdk": ["py.typed"]},
 )
