@@ -1,10 +1,11 @@
-from typing import Any, Dict, Generic, Optional, TypeVar, Type, Callable, List
-import socket
-import requests
 import functools
-from dataclasses import dataclass
-import time
 import random
+import socket
+import time
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Generic, List, Optional, Type, TypeVar
+
+import requests
 
 T = TypeVar("T")
 
@@ -90,7 +91,7 @@ def with_retry(
             while True:
                 try:
                     return func(*args, **kwargs)
-                except tuple(network_errors) as error:
+                except tuple(network_errors):
                     retry_count += 1
                     if retry_count > max_retries:
                         raise
@@ -109,7 +110,12 @@ def with_retry(
 
 
 class InfisicalRequests:
-    def __init__(self, host: str, token: Optional[str] = None):
+    def __init__(
+        self,
+        host: str,
+        token: Optional[str] = None,
+        headers: Optional[Dict[str, str]] = None
+    ):
         self.host = host.rstrip("/")
         self.session = requests.Session()
 
@@ -118,6 +124,9 @@ class InfisicalRequests:
             "Content-Type": "application/json",
             "Accept": "application/json",
         })
+
+        if headers:
+            self.session.headers.update(headers)
 
         if token:
             self.set_token(token)
