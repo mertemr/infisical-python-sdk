@@ -1,14 +1,19 @@
-from .infisical_requests import InfisicalRequests
+from typing import Dict, Optional
 
-from infisical_sdk.resources import Auth
-from infisical_sdk.resources import V3RawSecrets
-from infisical_sdk.resources import KMS
-
+from infisical_sdk.resources import KMS, Auth, V3RawSecrets
 from infisical_sdk.util import SecretsCache
+
+from .infisical_requests import InfisicalRequests
 
 
 class InfisicalSDKClient:
-    def __init__(self, host: str, token: str = None, cache_ttl: int = 60):
+    def __init__(
+        self,
+        host: str,
+        token: str = None,
+        cache_ttl: int = 60,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> None:
         """
         Initialize the Infisical SDK client.
 
@@ -20,7 +25,7 @@ class InfisicalSDKClient:
         self.host = host
         self.access_token = token
 
-        self.api = InfisicalRequests(host=host, token=token)
+        self.api = InfisicalRequests(host=host, token=token, headers=headers)
         self.cache = SecretsCache(cache_ttl)
         self.auth = Auth(self.api, self.set_token)
         self.secrets = V3RawSecrets(self.api, self.cache)
