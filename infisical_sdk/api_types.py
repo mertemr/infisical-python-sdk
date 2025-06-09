@@ -136,14 +136,19 @@ class MachineIdentityLoginResponse(BaseModel):
     tokenType: str
 
 
+class KeyUsage(str, Enum):
+    ENCRYPT_DECRYPT = "encrypt-decrypt"
+    SIGN_VERIFY = "sign-verify"
+
+
 class SymmetricEncryption(str, Enum):
-    AES_GCM_256 = "aes-256-gcm"
-    AES_GCM_128 = "aes-128-gcm"
+    AES_128_GCM = "aes-128-gcm"
+    AES_256_GCM = "aes-256-gcm"
 
 
 class AsymmetricEncryption(str, Enum):
-    RSA_4096 = "rsa-4096"
-    ECC_NIST_P256 = "ecc-nist-p256"
+    RSA_4096 = "RSA_4096"
+    ECC_NIST_P256 = "ECC_NIST_P256"
 
 
 class RSASigningAlgorithm(str, Enum):
@@ -171,7 +176,7 @@ class KmsKeysOrderBy(str, Enum):
 
 
 @dataclass
-class KmsKey(BaseModel):
+class KmsKeyModel(BaseModel):
     """Infisical KMS Key"""
 
     id: str
@@ -182,22 +187,23 @@ class KmsKey(BaseModel):
     createdAt: str
     updatedAt: str
     projectId: str
+    keyUsage: KeyUsage
     version: int
-    encryptionAlgorithm: SymmetricEncryption
+    encryptionAlgorithm: SymmetricEncryption | AsymmetricEncryption
 
 
 @dataclass
 class ListKmsKeysResponse(BaseModel):
     """Complete response model for Kms Keys API"""
 
-    keys: List[KmsKey]
+    keys: List[KmsKeyModel]
     totalCount: int
 
     @classmethod
     def from_dict(cls, data: Dict) -> "ListKmsKeysResponse":
         """Create model from dictionary with camelCase keys, handling nested objects"""
         return cls(
-            keys=[KmsKey.from_dict(key) for key in data["keys"]],
+            keys=[KmsKeyModel.from_dict(key) for key in data["keys"]],
             totalCount=data["totalCount"],
         )
 
@@ -206,12 +212,12 @@ class ListKmsKeysResponse(BaseModel):
 class SingleKmsKeyResponse(BaseModel):
     """Response model for get/create/update/delete API"""
 
-    key: KmsKey
+    key: KmsKeyModel
 
     @classmethod
     def from_dict(cls, data: Dict) -> "SingleKmsKeyResponse":
         return cls(
-            key=KmsKey.from_dict(data["key"]),
+            key=KmsKeyModel.from_dict(data["key"]),
         )
 
 

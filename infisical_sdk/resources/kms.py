@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 from infisical_sdk.api_types import (
     ECDSASigningAlgorithm,
-    KmsKey,
+    KmsKeyModel,
     KmsKeyDecryptDataResponse,
     KmsKeyEncryptDataResponse,
     KmsKeySignDataResponse,
@@ -15,12 +15,15 @@ from infisical_sdk.api_types import (
     SymmetricEncryption,
 )
 from infisical_sdk.infisical_requests import InfisicalRequests
+from infisical_sdk.util import SecretsCache
+
+CACHE_KEY_KMS_KEY = "cache-kms-key"
 
 
-class ActiveKMSKey:
-    def __init__(self, key_data: KmsKey, requests: InfisicalRequests):
-        self._key_data: KmsKey = key_data
-        self._key_type: KmsKey = key_data
+class KMSKey:
+    def __init__(self, key_data: KmsKeyModel, requests: InfisicalRequests):
+        self._key_data: KmsKeyModel = key_data
+        self._key_type: KmsKeyModel = key_data
         self._requests: InfisicalRequests = requests
         self.key_id: str = self._key_data.id
 
@@ -65,9 +68,9 @@ class ActiveKMSKey:
         return self._key_data.encryptionAlgorithm
 
     @property
-    def raw_data(self) -> KmsKey:
+    def raw_data(self) -> KmsKeyModel:
         return self._key_data
-    
+
     @property
     def full_id(self) -> str:
         return "%s.%s.%s" % (self.org_id, self.project_id, self.key_id)
@@ -174,10 +177,8 @@ class ActiveKMSKey:
         self,
         name: Optional[str] = None,
         is_disabled: Optional[bool] = None,
-        description: Optional[
-            str
-        ] = None,
-    ) -> "ActiveKMSKey":
+        description: Optional[str] = None,
+    ) -> "KMSKey":
         request_body = {}
         if name is not None:
             request_body["name"] = name
@@ -197,7 +198,7 @@ class ActiveKMSKey:
         self._key_data = response.data.key
         return self
 
-    def delete(self) -> KmsKey:
+    def delete(self) -> KmsKeyModel:
         response = self._requests.delete(
             path=f"/api/v1/kms/keys/{self.key_id}",
             json={},
@@ -206,11 +207,11 @@ class ActiveKMSKey:
         return response.data.key
 
     def __repr__(self) -> str:
-        return f"<ActiveKMSKey id='{self.id}' name='{self.name}'>"
+        return f"<KMSKey id='{self.id}' name='{self.name}'>"
 
 
 class KMS:
-    def __init__(self, requests: InfisicalRequests) -> None:
+    def __init__(self, requests: InfisicalRequests, cache: SecretsCache) -> None:
         self.requests = requests
 
     def list_keys(
@@ -237,20 +238,20 @@ class KMS:
         )
         return response.data
 
-    def get_key_by_id(self, key_id: str) -> ActiveKMSKey:
+    def get_key_by_id(self, key_id: str) -> KMSKey:
         response = self.requests.get(
             path=f"/api/v1/kms/keys/{key_id}", model=SingleKmsKeyResponse
         )
-        return ActiveKMSKey(key_data=response.data.key, requests=self.requests)
+        return KMSKey(key_data=response.data.key, requests=self.requests)
 
-    def get_key_by_name(self, key_name: str, project_id: str) -> ActiveKMSKey:
+    def get_key_by_name(self, key_name: str, project_id: str) -> KMSKey:
         params = {"projectId": project_id}
         response = self.requests.get(
             path=f"/api/v1/kms/keys/key-name/{key_name}",
             params=params,
             model=SingleKmsKeyResponse,
         )
-        return ActiveKMSKey(key_data=response.data.key, requests=self.requests)
+        return KMSKey(key_data=response.data.key, requests=self.requests)
 
     def create_key(
         self,
@@ -258,7 +259,7 @@ class KMS:
         project_id: str,
         encryption_algorithm: SymmetricEncryption,
         description: Optional[str] = None,
-    ) -> ActiveKMSKey:
+    ) -> KMSKey:
         request_body = {
             "name": name,
             "projectId": project_id,
@@ -270,4 +271,4 @@ class KMS:
         response = self.requests.post(
             path="/api/v1/kms/keys", json=request_body, model=SingleKmsKeyResponse
         )
-        return ActiveKMSKey(key_data=response.data.key, requests=self.requests)
+        return KMSKey(key_data=response.data.key, requests=self.requests)
