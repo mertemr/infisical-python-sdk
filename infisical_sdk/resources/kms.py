@@ -1,10 +1,13 @@
-from typing import Optional, Union
+from collections.abc import Callable
+from typing import Any, Optional, Union
 
 from infisical_sdk.api_types import (
+    AsymmetricEncryption,
     ECDSASigningAlgorithm,
-    KmsKeyModel,
+    KeyUsage,
     KmsKeyDecryptDataResponse,
     KmsKeyEncryptDataResponse,
+    KmsKeyModel,
     KmsKeySignDataResponse,
     KmsKeysOrderBy,
     KmsKeyVerifyDataResponse,
@@ -15,9 +18,6 @@ from infisical_sdk.api_types import (
     SymmetricEncryption,
 )
 from infisical_sdk.infisical_requests import InfisicalRequests
-from infisical_sdk.util import SecretsCache
-
-CACHE_KEY_KMS_KEY = "cache-kms-key"
 
 
 class KMSKey:
@@ -64,7 +64,7 @@ class KMSKey:
         return self._key_data.version
 
     @property
-    def encryption_algorithm(self) -> SymmetricEncryption:
+    def encryption_algorithm(self) -> Union[SymmetricEncryption, AsymmetricEncryption]:
         return self._key_data.encryptionAlgorithm
 
     @property
@@ -72,9 +72,42 @@ class KMSKey:
         return self._key_data
 
     @property
+    def key_usage(self) -> Optional[str]:
+        return self._key_data.keyUsage
+
+    def raise_if_not_encryption_key(
+        self,
+        func: Callable[..., Any],
+    ) -> Callable[..., Any]:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            if not self._key_data.keyUsage == KeyUsage.ENCRYPT_DECRYPT:
+                raise ValueError(
+                    "This KMS key is not an encryption key. "
+                    "It cannot be used for encryption or decryption."
+                )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    def raise_if_not_signing_key(
+        self,
+        func: Callable[..., Any],
+    ) -> Callable[..., Any]:
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            if not self._key_data.keyUsage == KeyUsage.SIGN_VERIFY:
+                raise ValueError(
+                    "This KMS key is not a signing key. "
+                    "It cannot be used for signing or verifying."
+                )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    @property
     def full_id(self) -> str:
         return "%s.%s.%s" % (self.org_id, self.project_id, self.key_id)
 
+    @raise_if_not_encryption_key
     def encrypt_data(self, base64EncodedPlaintext: str) -> str:
         """
         Encrypt data with the specified KMS key.
@@ -95,6 +128,7 @@ class KMSKey:
         )
         return response.data.ciphertext
 
+    @raise_if_not_encryption_key
     def decrypt_data(self, ciphertext: str) -> str:
         """
         Decrypt data with the specified KMS key.
@@ -114,7 +148,8 @@ class KMSKey:
             model=KmsKeyDecryptDataResponse,
         )
         return response.data.plaintext
-
+    
+    @raise_if_not_signing_key
     def sign_data(
         self,
         base64EncodedPlaintext: str,
@@ -142,6 +177,7 @@ class KMSKey:
         )
         return response.data.signature
 
+    @raise_if_not_signing_key
     def verify_data(
         self,
         base64EncodedPlaintext: str,
@@ -211,7 +247,7 @@ class KMSKey:
 
 
 class KMS:
-    def __init__(self, requests: InfisicalRequests, cache: SecretsCache) -> None:
+    def __init__(self, requests: InfisicalRequests) -> None:
         self.requests = requests
 
     def list_keys(
@@ -253,11 +289,12 @@ class KMS:
         )
         return KMSKey(key_data=response.data.key, requests=self.requests)
 
+    # TODO: Add keyUsage
     def create_key(
         self,
         name: str,
         project_id: str,
-        encryption_algorithm: SymmetricEncryption,
+        encryption_algorithm: SymmetricEncryption | AsymmetricEncryption,
         description: Optional[str] = None,
     ) -> KMSKey:
         request_body = {
