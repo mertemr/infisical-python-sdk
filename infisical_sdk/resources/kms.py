@@ -20,6 +20,32 @@ from infisical_sdk.api_types import (
 from infisical_sdk.infisical_requests import InfisicalRequests
 
 
+def enforce_encryption_key_usage(
+    func: Callable[..., Any],
+) -> Callable[..., Any]:
+    def wrapper(self: "KMSKey", *args: Any, **kwargs: Any) -> Any:
+        if not self._key_data.keyUsage == KeyUsage.ENCRYPT_DECRYPT:
+            raise ValueError(
+                "This KMS key is not an encryption key. "
+                "It cannot be used for encryption or decryption."
+            )
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
+def enforce_signing_key_usage(
+    func: Callable[..., Any],
+) -> Callable[..., Any]:
+    def wrapper(self: "KMSKey", *args: Any, **kwargs: Any) -> Any:
+        if not self._key_data.keyUsage == KeyUsage.SIGN_VERIFY:
+            raise ValueError(
+                "This KMS key is not a signing key. "
+                "It cannot be used for signing or verifying."
+            )
+        return func(self, *args, **kwargs)
+    return wrapper
+
+
 class KMSKey:
     def __init__(self, key_data: KmsKeyModel, requests: InfisicalRequests):
         self._key_data: KmsKeyModel = key_data
@@ -75,39 +101,11 @@ class KMSKey:
     def key_usage(self) -> Optional[str]:
         return self._key_data.keyUsage
 
-    def raise_if_not_encryption_key(
-        self,
-        func: Callable[..., Any],
-    ) -> Callable[..., Any]:
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            if not self._key_data.keyUsage == KeyUsage.ENCRYPT_DECRYPT:
-                raise ValueError(
-                    "This KMS key is not an encryption key. "
-                    "It cannot be used for encryption or decryption."
-                )
-            return func(*args, **kwargs)
-
-        return wrapper
-
-    def raise_if_not_signing_key(
-        self,
-        func: Callable[..., Any],
-    ) -> Callable[..., Any]:
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            if not self._key_data.keyUsage == KeyUsage.SIGN_VERIFY:
-                raise ValueError(
-                    "This KMS key is not a signing key. "
-                    "It cannot be used for signing or verifying."
-                )
-            return func(*args, **kwargs)
-
-        return wrapper
-
     @property
     def full_id(self) -> str:
         return "%s.%s.%s" % (self.org_id, self.project_id, self.key_id)
 
-    @raise_if_not_encryption_key
+    @enforce_encryption_key_usage
     def encrypt_data(self, base64EncodedPlaintext: str) -> str:
         """
         Encrypt data with the specified KMS key.
@@ -128,7 +126,7 @@ class KMSKey:
         )
         return response.data.ciphertext
 
-    @raise_if_not_encryption_key
+    @enforce_encryption_key_usage
     def decrypt_data(self, ciphertext: str) -> str:
         """
         Decrypt data with the specified KMS key.
@@ -148,8 +146,8 @@ class KMSKey:
             model=KmsKeyDecryptDataResponse,
         )
         return response.data.plaintext
-    
-    @raise_if_not_signing_key
+
+    @enforce_signing_key_usage
     def sign_data(
         self,
         base64EncodedPlaintext: str,
@@ -177,7 +175,7 @@ class KMSKey:
         )
         return response.data.signature
 
-    @raise_if_not_signing_key
+    @enforce_signing_key_usage
     def verify_data(
         self,
         base64EncodedPlaintext: str,
