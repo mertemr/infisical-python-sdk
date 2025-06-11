@@ -98,7 +98,7 @@ class KMSKey:
         return self._key_data
 
     @property
-    def key_usage(self) -> Optional[str]:
+    def key_usage(self) -> KeyUsage:
         return self._key_data.keyUsage
 
     @property
