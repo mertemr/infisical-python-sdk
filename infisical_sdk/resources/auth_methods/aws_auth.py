@@ -1,20 +1,23 @@
-from botocore.auth import SigV4Auth
-from botocore.awsrequest import AWSRequest
-from botocore.exceptions import NoCredentialsError
-
-from infisical_sdk.infisical_requests import InfisicalRequests
-from infisical_sdk.api_types import MachineIdentityLoginResponse
-
-from typing import Callable
-
-import requests
-import boto3
 import base64
+import datetime
 import json
 import os
-import datetime
+from typing import Any, Callable, Dict
 
-from typing import Dict, Any
+import requests
+
+from infisical_sdk.api_types import MachineIdentityLoginResponse
+from infisical_sdk.infisical_requests import InfisicalRequests
+
+try:
+    import boto3
+    from botocore.auth import SigV4Auth
+    from botocore.awsrequest import AWSRequest
+    from botocore.exceptions import NoCredentialsError
+
+    BOTO3_AVAILABLE = True
+except ImportError:
+    BOTO3_AVAILABLE = False
 
 
 class AWSAuth:
@@ -33,7 +36,17 @@ class AWSAuth:
 
         Returns:
             Dict: A dictionary containing the access token and related information.
+
+        Raises:
+            ValueError: If the identity_id is not provided and not set in the environment variable.
+            RuntimeError: If boto3 is not installed or AWS credentials are not found.
         """
+
+        if not BOTO3_AVAILABLE:
+            raise RuntimeError(
+                "boto3 is required for AWS IAM Auth but is not installed. "
+                "Did you forget to install the `infisicalsdk[awsauth]` extra?"
+            )
 
         identity_id = identity_id or os.getenv("INFISICAL_AWS_IAM_AUTH_IDENTITY_ID")
         if not identity_id:
@@ -73,7 +86,7 @@ class AWSAuth:
 
         return result.data
 
-    def _get_aws_credentials(self, session: boto3.Session) -> Any:
+    def _get_aws_credentials(self, session: "boto3.Session") -> Any:
         try:
             credentials = session.get_credentials()
             if credentials is None:

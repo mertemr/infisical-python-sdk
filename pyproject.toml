@@ -1,6 +1,6 @@
 [project]
 name = "infisicalsdk"
-version = "1.1.1"
+version = "1.1.2"
 description = "Infisical API"
 authors = [{ name = "OpenAPI Generator Community", email = "team@openapitools.org" }]
 requires-python = "~=3.10"
@@ -12,17 +12,18 @@ keywords = [
     "Infisical API",
 ]
 dependencies = [
-    "python-dateutil>=2.8.2",
-    "aenum>=3.1.11",
-    "setuptools>=68.0.0",
-    "requests>=2.31.0",
-    "boto3>=1.33.13",
-    "botocore>=1.33.13",
+    "cachetools>=5.5.2",
     "httpx>=0.28.1",
 ]
 
 [project.urls]
 Repository = "https://github.com/mertemr/infisical-python-sdk"
+
+[project.optional-dependencies]
+awsauth = [
+    "boto3>=1.38.20",
+    "botocore>=1.38.20",
+]
 
 [dependency-groups]
 dev = [
