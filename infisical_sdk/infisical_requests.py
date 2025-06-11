@@ -185,7 +185,7 @@ class InfisicalRequests:
 
         return data
     
-    def _filter_none_values(json: dict[str, Any] | None) -> dict[str, Any] | None:
+    def _filter_none_values(self, json: dict[str, Any] | None) -> dict[str, Any] | None:
         if json is not None:
             # Filter out None values
             json = {k: v for k, v in json.items() if v is not None}
